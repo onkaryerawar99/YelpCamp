@@ -1,0 +1,88 @@
+<% include ../partials/header %>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div id="map"></div>
+        </div>
+        <div class="col-md-9">
+            <div class="card mb-3">
+                <img class="card-img-top" src="<%=showCampground.image%>" alt="<%=showCampground.name%>"></img>
+                <div class="card-body">
+                    <p class="float-right">
+                        $<%= showCampground.price %>/night
+                    </p>
+                    <h5 class="card-title"><%=showCampground.name%></h5>
+                    <p>
+                        <em>Submitted By <a href="/users/<%= showCampground.author.id %>"><%= showCampground.author.username %></a>, <%= moment(showCampground.createdAt).fromNow() %></em>
+                    </p>
+                    <hr>
+                    <p class="card-text"><%=showCampground.description%></p>
+                    <% if(currentUser && showCampground.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin ){ %>
+                        <a class="btn btn-warning btn-sm" href="/campgrounds/<%= showCampground._id %>/edit">Edit</a>
+                        <form id="delete-form" method="POST" action="/campgrounds/<%= showCampground._id %>?_method=DELETE">
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    <% } %>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-body">
+                     <% if(currentUser){ %>
+                    <div class="text-right">
+                        <a class="btn btn-success" href="/campgrounds/<%= showCampground._id %>/comments/new">Add a comment!</a>
+                    </div>
+                <% } %>
+                <hr>
+                <% showCampground.comments.forEach(function(comment){ %>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <strong><%= comment.author.username %></strong>
+                            <span class="float-right"><%= moment(comment.createdAt).fromNow() %></span>
+                            <p>
+                                <%= comment.text %>
+                            </p>
+                            <% if(currentUser && comment.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin ){ %>
+                                <a class="btn btn-warning btn-sm" href="/campgrounds/<%= showCampground._id %>/comments/<%= comment._id %>/edit">Edit</a>
+                                <form id="delete-form" method="POST" action="/campgrounds/<%= showCampground._id %>/comments/<%= comment._id %>?_method=DELETE">
+                                    <input type=Submit value="Delete" class="btn btn-sm btn-danger">
+                                </form>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+  function initMap() {
+    var lat = <%= showCampground.lat %>;
+    var lng = <%= showCampground.lng %>;
+    var center = {lat: lat, lng: lng };
+    var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 8,
+        center: center,
+        scrollwheel: false
+    });
+    var contentString = `
+      <strong><%= showCampground.name %><br />
+      <%= showCampground.location %></strong>
+      <p><%= showCampground.description %></p>
+    `
+    var infowindow = new google.maps.InfoWindow({
+      content: contentString
+    });
+    var marker = new google.maps.Marker({
+        position: center,
+        map: map
+    });
+    marker.addListener('click', function() {
+      infowindow.open(map, marker);
+    });
+  }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOFuln43e3KuYkWnqXtPgjHm_UssD72ak&callback=initMap"></script>
+
+<% include ../partials/footer %>

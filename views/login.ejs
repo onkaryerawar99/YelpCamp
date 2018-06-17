@@ -1,0 +1,28 @@
+<% include partials/header %>
+
+    <div class="row">
+    
+        <div class="col-md-12">
+            
+            <form class="form-signin text-center" action="/login" method="post">
+                
+                <h1 class="h3 mb-3 font-weight-normal">Login</h1>
+                
+                <label for="username" class="sr-only">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="username" required autofocus>
+                
+                <label for="password" class="sr-only">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="password" required>
+                
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+    
+            </form>
+            
+            <div class="form-signin">
+                <a href="/campgrounds">Go Back</a>
+            </div>
+            
+        </div>
+    </div>
+
+<% include partials/footer %>
