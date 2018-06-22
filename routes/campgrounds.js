@@ -37,30 +37,48 @@ cloudinary.config({
 
 //show campgrounds
 router.get("/", function(req, res){
+    var perPage = 4;
+    var pageNumber = parseInt(req.query.page);
+    pageNumber = pageNumber ? pageNumber : 1;
     if(req.query.search){
         const regex = new RegExp(escapeRegex(req.query.search), 'gi');
- 
-        Campground.find({name: regex}, function(err, campgrounds){
+        Campground.find({name: regex}).skip((pageNumber - 1) * perPage).limit(perPage).sort({name:1}).exec(function(err, campgrounds){
             if(err){
                 console.log(err);
             } else{
-                if(campgrounds.length == 0){
-                    req.flash("warning", "No campgrounds matching your search query. Displaying all campgrounds.");
-                    res.redirect('/campgrounds');
-                } else{
-                    res.render("campgrounds/index", {campgrounds: campgrounds});
+                    Campground.count({name: regex}).exec(function(err, count){
+                        if(err){
+                        console.log(err);
+                        } else{
+                            if(campgrounds.length == 0){
+                                req.flash("warning", "No campgrounds matching your search query. Displaying all campgrounds.");
+                                res.redirect('/campgrounds');
+                            } else{
+                                res.render("campgrounds/index", {campgrounds: campgrounds, current: pageNumber, pages: Math.ceil(count/perPage), search: req.query.search});
+                            }
+                        }
+                    });
                 }
-            }
         });
     }
     else{
-        Campground.find({}, function(err, campgrounds){
+        Campground.find({}).skip((pageNumber * perPage) - perPage).limit(perPage).sort({name:1}).exec(function(err, campgrounds){
             if(err){
                 console.log(err);
             } else{
-                req.flash("success", "Displaying campgrounds matching your search query.");
-                res.render("campgrounds/index", {campgrounds: campgrounds, page: "campgrounds"});    
-            }
+                    Campground.count().exec(function(err, count){
+                        if(err){
+                        console.log(err);
+                        } else{
+                            if(campgrounds.length == 0){
+                                req.flash("success", "Displaying campgrounds matching your search query.");
+                                res.redirect('/campgrounds');
+                            } else{
+                                res.render("campgrounds/index", {campgrounds: campgrounds, current: pageNumber, pages: Math.ceil(count/perPage), search: false});
+                            }
+                        }
+                    });
+                }
         });
     }
 });
@@ -73,11 +91,11 @@ router.post("/", middleware.isLoggedIn, upload.single('image'), function(req, re
    };
    geocoder.geocode(req.body.campground.location, function (err, data) {
         if (err || !data.length) {
-          req.flash('error', 'Invalid address');
+        req.flash('error', 'Invalid address');
         return res.redirect('back');
         }
        req.body.campground.lat = data[0].latitude;
-       req.body.campground.lng = data[0].lng;
+       req.body.campground.lng = data[0].longitude;
        req.body.campground.location = data[0].formattedAddress;
    
        cloudinary.uploader.upload(req.file.path, function(result) {
@@ -125,8 +143,7 @@ router.get("/:id/edit", middleware.checkCampgroundOwnership, function(req, res){
 //UPDATE CAMPGROUND
 router.put("/:id", middleware.checkCampgroundOwnership, function(req, res){
     
-    geocoder.geocode(req.body.location, function (err, data) {
-        console.log(data);
+    geocoder.geocode(req.body.campground.location, function (err, data) {
     if (err || !data.length) {
       req.flash('error', 'Invalid address');
       return res.redirect('back');
