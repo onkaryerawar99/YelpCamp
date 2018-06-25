@@ -71,13 +71,13 @@ router.get("/logout", function(req, res){
 router.get("/users/:id", function(req, res){
    User.findById(req.params.id, function(err, foundUser){
       if(err || !foundUser){
-         req.flash("error", "Something went wrong. Try again!");
+         req.flash("error", "That user does not exists anymore.");
          return res.redirect("back");
       }
       
       Campground.find().where('author.id').equals(foundUser._id).exec(function(err, campgrounds){
          if(err){
-              req.flash("error", "Something went wrong. Try again!");
+            req.flash("error", "Something went wrong. Try again!");
             res.redirect("back");
          }
          res.render("users/show", {user: foundUser, campgrounds: campgrounds});

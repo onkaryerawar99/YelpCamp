@@ -47,3 +47,10 @@
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+
+.jumbotron {
+  background-image: url("http://www.hotelroomsearch.net/im/hotels/fr/camping-panoramic.jpg");
+  color: white;
+  background-size: cover;
+  background-position: center;
+}
